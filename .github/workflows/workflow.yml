@@ -65,21 +65,6 @@ jobs:
       run: terraform init
       working-directory: terraform
 
-    - name: Terraform Plan
-      env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      id: plan
-      run: terraform plan -no-color -input=false -refresh=true
-      working-directory: terraform
-
-    - name: Terraform Apply
-      env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      run: terraform apply -input=false -auto-approve
-      working-directory: terraform
-
     - name: Setup AWS ECR Details 
       uses: aws-actions/configure-aws-credentials@v1
       with:
@@ -99,4 +84,15 @@ jobs:
       run: 
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+    - name: Terraform Plan
+      id: plan
+      run: |
+            #export REPOSITORY_URI=$REPOSITORY_URI
+            terraform plan -no-color -input=false -refresh=true -var="REPOSITORY_URI=${{ secrets.REPOSITORY_URI }}"
+      working-directory: terraform
+  
+    - name: Terraform Apply
+      run: terraform apply -input=false -auto-approve -var="REPOSITORY_URI=${{ secrets.REPOSITORY_URI }}"
+      working-directory: terraform
        
